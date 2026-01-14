@@ -1001,7 +1001,7 @@ class TLDRDaemon:
 
                 for test_file in test_files:
                     try:
-                        with open(self.project / test_file) as f:
+                        with open(self.project / test_file, encoding="utf-8", errors="replace") as f:
                             content = f.read()
                             if f"import {module_name}" in content or f"from {module_name}" in content:
                                 affected_tests.add(test_file)

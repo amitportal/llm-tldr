@@ -57,7 +57,7 @@ def load_workspace_config(project_path: Union[str, Path]) -> WorkspaceConfig:
         )
 
     try:
-        with open(config_file, "r") as f:
+        with open(config_file, "r", encoding="utf-8") as f:
             data = json.load(f)
     except (json.JSONDecodeError, IOError):
         # Invalid JSON or read error - return defaults

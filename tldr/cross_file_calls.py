@@ -374,7 +374,7 @@ def parse_imports(file_path: str | Path) -> list[dict]:
     """
     file_path = Path(file_path)
     try:
-        source = file_path.read_text()
+        source = file_path.read_text(encoding="utf-8", errors="replace")
         tree = ast.parse(source)
     except (SyntaxError, FileNotFoundError):
         return []
@@ -1766,7 +1766,7 @@ def build_function_index(
 def _index_python_file(src_path: Path, rel_path: Path, module_name: str, simple_module: str, index: dict):
     """Index functions and classes from a Python file."""
     try:
-        source = src_path.read_text()
+        source = src_path.read_text(encoding="utf-8", errors="replace")
         tree = ast.parse(source)
     except (SyntaxError, FileNotFoundError):
         return
@@ -2199,7 +2199,7 @@ def _extract_file_calls(file_path: Path, root: Path) -> dict[str, list[tuple[str
         call_type is 'direct', 'attr', or 'intra'
     """
     try:
-        source = file_path.read_text()
+        source = file_path.read_text(encoding="utf-8", errors="replace")
         tree = ast.parse(source)
     except (SyntaxError, FileNotFoundError):
         return {}

@@ -409,19 +409,68 @@ Semantic Search:
 
     # tldr brain build/serve
     brain_p = subparsers.add_parser(
-        "brain", help="Interactive project visualizer with semantic embeddings"
+        "brain",
+        help="Interactive 3D project visualizer with semantic embeddings",
+        description="Generate and serve interactive 3D visualizations of your codebase with semantic clustering",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Build brain.json for current directory
+  tldr brain build
+  tldr brain build .
+  
+  # Build for specific project (output to .tldr/brain.json)
+  tldr brain build /path/to/project
+  tldr brain build Y:\\my-project
+  
+  # Custom output location
+  tldr brain build . -o custom_brain.json
+  tldr brain build . --output ./analysis/brain.json
+  
+  # Specify language
+  tldr brain build . --lang typescript
+  
+  # Serve visualization (auto-builds if needed)
+  tldr brain serve
+  tldr brain serve .
+  tldr brain serve /path/to/project
+  
+  # Serve on custom port
+  tldr brain serve . --port 8080
+  
+  # Serve without rebuilding
+  tldr brain serve . --no-build
+
+Default Locations:
+  - Build output: {project}/.tldr/brain.json
+  - Server looks for: {project}/.tldr/brain.json (falls back to {project}/brain.json)
+  
+Installation:
+  Brain requires additional dependencies. Install with:
+    pip install llm-tldr[brain]
+  Or manually:
+    pip install networkx umap-learn hdbscan scipy scikit-learn
+        """
     )
     brain_sub = brain_p.add_subparsers(dest="action", required=True)
 
     # tldr brain build [path] [--output FILE] [--cached]
-    brain_build_p = brain_sub.add_parser("build", help="Generate brain.json from project analysis")
+    brain_build_p = brain_sub.add_parser(
+        "build",
+        help="Generate brain.json from project analysis",
+        description="Analyze project structure, compute embeddings, and generate brain.json visualization data"
+    )
     brain_build_p.add_argument("path", nargs="?", default=".", help="Project root (default: current directory)")
-    brain_build_p.add_argument("--output", "-o", default="brain.json", help="Output file (default: brain.json)")
+    brain_build_p.add_argument("--output", "-o", default=".tldr/brain.json", help="Output file (default: .tldr/brain.json)")
     brain_build_p.add_argument("--lang", default="python", help="Language to analyze (default: python)")
     brain_build_p.add_argument("--cached", action="store_true", help="Use cached semantic index if available")
 
     # tldr brain serve [path] [--port PORT]
-    brain_serve_p = brain_sub.add_parser("serve", help="Start visualization server")
+    brain_serve_p = brain_sub.add_parser(
+        "serve",
+        help="Start visualization server",
+        description="Start Flask server to serve the interactive brain visualization UI"
+    )
     brain_serve_p.add_argument("path", nargs="?", default=".", help="Project root with brain.json (default: current directory)")
     brain_serve_p.add_argument("--port", "-p", type=int, default=5000, help="Server port (default: 5000)")
     brain_serve_p.add_argument("--no-build", action="store_true", help="Don't rebuild brain.json if already available")
@@ -1055,38 +1104,57 @@ Semantic Search:
         elif args.command == "brain":
             project_path = Path(args.path).resolve()
             
+            if not project_path.exists():
+                print(f"Error: Path not found: {args.path}", file=sys.stderr)
+                sys.exit(1)
+            
             if args.action == "build":
-                from scripts.build_brain import build_brain_for_project
+                from .brain import build_brain_for_project
+                
+                # Handle output path - default is .tldr/brain.json
                 output_path = Path(args.output)
                 if not output_path.is_absolute():
                     output_path = project_path / args.output
                 
+                # Ensure output directory exists
+                output_path.parent.mkdir(parents=True, exist_ok=True)
+                
                 print(f"Building brain.json for {project_path}...")
-                build_brain_for_project(
+                result = build_brain_for_project(
                     project_path=project_path,
                     output_path=output_path,
                     language=args.lang,
                     use_cached=args.cached
                 )
-                print(f"✓ Brain dump saved to {output_path}")
+                if result:
+                    print(f"✓ Brain dump saved to {output_path}")
+                else:
+                    print("✗ Failed to build brain.json", file=sys.stderr)
+                    sys.exit(1)
             
             elif args.action == "serve":
-                brain_file = project_path / "brain.json"
+                # Look for brain.json in .tldr/ first, then project root
+                brain_file = project_path / ".tldr" / "brain.json"
+                if not brain_file.exists():
+                    # Fall back to project root for backwards compatibility
+                    brain_file = project_path / "brain.json"
                 
                 if not brain_file.exists() and not args.no_build:
                     print("brain.json not found, building...")
-                    from scripts.build_brain import build_brain_for_project
+                    from .brain import build_brain_for_project
+                    brain_file = project_path / ".tldr" / "brain.json"
                     build_brain_for_project(project_path=project_path, output_path=brain_file)
                 
                 if not brain_file.exists():
-                    print(f"Error: {brain_file} not found. Run 'tldr brain build' first.", file=sys.stderr)
+                    print(f"Error: brain.json not found. Run 'tldr brain build' first.", file=sys.stderr)
                     sys.exit(1)
                 
                 # Start Flask server
                 print(f"Starting visualization server on http://127.0.0.1:{args.port}")
+                print(f"Using brain file: {brain_file}")
                 print("Press Ctrl+C to stop")
                 
-                from scripts.brain_server import create_app
+                from .server import create_app
                 app = create_app(project_path, brain_file)
                 app.run(host="127.0.0.1", port=args.port, debug=True)
 

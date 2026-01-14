@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TLDR Brain v2</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
     <script src="//unpkg.com/3d-force-graph"></script>
     <script src="//unpkg.com/three@0.160.0/build/three.min.js"></script>
     <link rel="stylesheet" href="style.css">
@@ -16,8 +18,10 @@
     <div id="ui-layer">
         <!-- Header -->
         <header>
-            <h1>🧠 TLDR Brain</h1>
+            <h1><a href="favicon.html" target="_blank" style="text-decoration:none; cursor:pointer;"
+                    title="View Minimalist Brain">🧠</a> TLDR Brain</h1>
             <div class="view-toggle">
+                <button id="btn-tree" class="view-btn" onclick="setView('tree')">🌲 Tree</button>
                 <button id="btn-force" class="view-btn active" onclick="setView('force')">🔀 Force-Flow</button>
                 <button id="btn-semantic" class="view-btn" onclick="setView('semantic')">🧠 Semantic</button>
                 <button id="btn-hybrid" class="view-btn" onclick="setView('hybrid')">🔮 Hybrid</button>
@@ -41,6 +45,7 @@
                         data-info="cluster-spheres">ℹ️</span></button>
                 <button onclick="toggleHeatmap()">📊 Similarity Map <span class="info-btn"
                         data-info="similarity-map">ℹ️</span></button>
+                <button onclick="toggleClusterLabels()">🏷️ Cluster Labels</button>
             </div>
 
             <div id="blend-control" class="control-group" style="display:none;">
@@ -80,14 +85,88 @@
             <hr>
             <h4>Legend <span class="info-btn" data-info="legend">ℹ️</span></h4>
             <div class="legend">
-                <div><span style="color:#00ff88">●</span> Entry Points</div>
-                <div><span style="color:#00aaff">●</span> Workflow Logic</div>
-                <div><span style="color:#ff8800">●</span> Utilities/Leaves</div>
-                <div><span style="color:#888888">●</span> Unknown</div>
+                <strong>Node Types:</strong>
+                <div><span style="color:#00ff88">●</span> Entry (CLI/API)</div>
+                <div><span style="color:#00aaff">●</span> Middle (Logic)</div>
+                <div><span style="color:#ff8800">●</span> Leaf (Utils)</div>
+                <div><span style="color:#ffffff">●</span> Files</div>
+
+                <strong style="margin-top:6px;display:block">Edge Types:</strong>
+                <div><span style="color:#00ff88">━</span> Calls (green)</div>
+                <div><span style="color:#ffd700">━</span> Imports (gold)</div>
+                <div><span style="color:#666">┄</span> Contains (gray)</div>
+
+                <strong style="margin-top:6px;display:block">On Selection:</strong>
+                <div><span style="color:#00bfff">→</span> Outgoing</div>
+                <div><span style="color:#ff3333">←</span> Incoming</div>
             </div>
-            <small>Colors = clusters | Click node: <span style="color:#ff6464">● in</span> <span style="color:#50a0ff">●
-                    out</span></small>
         </div>
+
+        <!-- Tree View (Full View Mode) - Three Panel Layout -->
+        <div id="tree-view" class="tree-view hidden">
+
+            <!-- Panel 1: Tree Structure -->
+            <div class="tree-panel tree-panel-left">
+                <div class="panel-header">
+                    <h3>Code Structure</h3>
+                    <div class="tree-controls">
+                        <input type="text" id="tree-search" placeholder="Filter..."
+                            oninput="filterTreeNodes(this.value)">
+                        <select id="tree-sort" onchange="sortTreeBy(this.value)">
+                            <option value="name">Sort: Name</option>
+                            <option value="score">Sort: Score ↓</option>
+                            <option value="degree">Sort: Degree ↓</option>
+                            <option value="type">Sort: Type</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="tree-container" class="tree-container"></div>
+            </div>
+
+            <!-- Panel 2: Details & Connections -->
+            <div class="tree-panel tree-panel-center">
+                <div class="panel-header">
+                    <h3>Node Details</h3>
+                    <button id="btn-view-3d" class="action-btn" onclick="navigateToNodeIn3D(treeSelectedNode?.id)"
+                        disabled>
+                        View in 3D Graph →
+                    </button>
+                </div>
+
+                <div id="tree-node-info" class="tree-node-info">
+                    <div class="tree-hint">Select a node to explore its dependencies</div>
+                </div>
+
+                <div id="tree-connections" class="tree-connections">
+                    <div class="connection-tabs">
+                        <button class="conn-tab active" data-tab="outgoing" onclick="switchConnTab('outgoing')">
+                            Outgoing <span id="out-count">0</span>
+                        </button>
+                        <button class="conn-tab" data-tab="incoming" onclick="switchConnTab('incoming')">
+                            Incoming <span id="in-count">0</span>
+                        </button>
+                    </div>
+                    <div id="conn-outgoing" class="conn-list active">
+                        <ul id="tree-outgoing"></ul>
+                    </div>
+                    <div id="conn-incoming" class="conn-list">
+                        <ul id="tree-incoming"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 3: Source Preview -->
+            <div class="tree-panel tree-panel-right">
+                <div class="panel-header">
+                    <h3 id="source-panel-title">Source Preview</h3>
+                    <span id="source-file-path" class="source-path"></span>
+                </div>
+                <pre id="tree-source-code"
+                    class="source-code">Select a node or click a connection to view source code</pre>
+            </div>
+        </div>
+
+
 
         <!-- Right Details Panel -->
         <div id="details-panel" class="panel hidden">

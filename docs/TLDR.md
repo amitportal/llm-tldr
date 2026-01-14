@@ -771,7 +771,106 @@ tldr daemon stop --project .           # Stop daemon
 tldr daemon status --project .         # Check daemon health
 ```
 
+### Brain Visualization
+
+Generate and serve an interactive 3D visualization of your codebase with semantic embeddings, centrality metrics, and cluster analysis.
+
+#### Build Brain Data
+
+```bash
+# Build for current directory (outputs to .tldr/brain.json)
+tldr brain build
+
+# Build for current directory (explicit)
+tldr brain build .
+
+# Build for specific path
+tldr brain build /path/to/project
+tldr brain build Y:\my-project
+
+# Custom output location (relative to project)
+tldr brain build . -o brain.json
+tldr brain build . --output ./analysis/brain.json
+
+# Absolute output path
+tldr brain build . -o /tmp/brain.json
+
+# Specify language
+tldr brain build . --lang typescript
+tldr brain build . --lang python
+
+# Use cached semantic index (faster rebuild)
+tldr brain build . --cached
+```
+
+**Output location**: By default, `brain.json` is saved to `{project}/.tldr/brain.json` to keep the project root clean.
+
+#### Serve Visualization
+
+```bash
+# Start visualization server (auto-builds if needed)
+tldr brain serve .
+
+# Serve on custom port
+tldr brain serve . --port 8080
+
+# Serve without rebuild (use existing brain.json)
+tldr brain serve . --no-build
+
+# Combine options
+tldr brain serve /path/to/project --port 3000 --no-build
+```
+
+#### Standalone Script
+
+For development or scripting, use the script directly:
+
+```bash
+# From project root
+python scripts/build_brain.py .
+
+# Build for another project
+python scripts/build_brain.py /path/to/project
+
+# Custom output
+python scripts/build_brain.py . -o brain.json
+
+# With language option
+python scripts/build_brain.py . --lang python
+```
+
+#### Python API
+
+```python
+from tldr.brain import build_brain_for_project
+from pathlib import Path
+
+# Build for current directory
+build_brain_for_project(Path.cwd())
+
+# Build for specific path with custom output
+build_brain_for_project(
+    project_path=Path("/path/to/project"),
+    output_path=Path("/path/to/project/custom_brain.json"),
+    language="python",
+    use_cached=True
+)
+```
+
+#### Installation
+
+Brain visualization requires additional dependencies:
+
+```bash
+# Install brain dependencies
+pip install llm-tldr[brain]
+
+# Or install manually
+pip install networkx umap-learn hdbscan scipy scikit-learn
+```
+
 ---
+
 
 ## Python API
 

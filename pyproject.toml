@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "llm-tldr"
-version = "1.0.1"
+version = "1.1.0"
 description = "Token-efficient code analysis for LLMs. 5-layer stack: AST, Call Graph, CFG, DFG, PDG. 95% token savings. 15 languages."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -73,6 +73,13 @@ dev = [
     "rich>=13.0",
     "shtab>=1.7.0",
 ]
+brain = [
+    "networkx>=3.0",
+    "umap-learn>=0.5.0",
+    "hdbscan>=0.8.0",
+    "scipy>=1.10.0",
+    "scikit-learn>=1.0.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/parcadei/llm-tldr"
@@ -83,6 +90,8 @@ Documentation = "https://github.com/parcadei/llm-tldr#readme"
 [project.scripts]
 tldr = "tldr.cli:main"
 llm-tldr = "tldr.cli:main"
+tldr-brain = "tldr.brain:main"
+tldr-brain-server = "tldr.brain_server:main"
 tldr-mcp = "tldr.mcp_server:main"
 
 [tool.setuptools.packages.find]
@@ -91,7 +100,12 @@ include = ["tldr*"]
 exclude = ["tests*"]
 
 [tool.setuptools.package-data]
-tldr = ["py.typed"]
+tldr = [
+    "py.typed",
+    "brain_ui/*.html",
+    "brain_ui/*.js",
+    "brain_ui/*.css",
+]
 
 [tool.black]
 line-length = 88

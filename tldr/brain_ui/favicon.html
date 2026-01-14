@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimalist Brain Favicon</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="canvas-container"></div>
+
+    <script>
+        function setup() {
+            let container = document.getElementById('canvas-container');
+            let cnv = createCanvas(container.offsetWidth, container.offsetHeight);
+            cnv.parent('canvas-container');
+            frameRate(30);
+        }
+
+        let neurons = [];
+        let numNeurons = 60;
+
+        function draw() {
+            clear();
+
+            // Initialize neurons if empty
+            if (neurons.length === 0) {
+                for (let i = 0; i < numNeurons; i++) {
+                    let hemisphere = i % 2 === 0 ? -1 : 1;
+                    let r = random(width * 0.2, width * 0.45);
+                    let theta = random(-PI, PI);
+
+                    // Brain-ish shape (elliptical)
+                    let x = width / 2 + hemisphere * r * cos(theta);
+                    let y = height / 2 + r * sin(theta) * 0.6; // Further flattened to prevent vertical clipping
+
+                    neurons.push({
+                        x: x,
+                        y: y,
+                        vx: random(-0.2, 0.2),
+                        vy: random(-0.2, 0.2)
+                    });
+                }
+            }
+
+            // Update neurons
+            for (let n of neurons) {
+                n.x += n.vx;
+                n.y += n.vy;
+
+                let centerX = width / 2;
+                let centerY = height / 2;
+                let d = dist(n.x, n.y, centerX, centerY);
+
+                if (d > width * 0.45) {
+                    n.x += (centerX - n.x) * 0.02; // Tighter attraction
+                    n.y += (centerY - n.y) * 0.02;
+                }
+            }
+
+            // Draw Connections (Neural Pathways)
+            strokeWeight(3);
+            for (let i = 0; i < neurons.length; i++) {
+                for (let j = i + 1; j < neurons.length; j++) {
+                    let d = dist(neurons[i].x, neurons[i].y, neurons[j].x, neurons[j].y);
+                    if (d < 90) {
+                        // Gradient line
+                        let inter = map(d, 0, 90, 0, 1);
+                        let c1 = color(41, 121, 255); // Blue
+                        let c2 = color(0, 229, 255); // Cyan
+
+                        stroke(lerpColor(c1, c2, 1 - inter));
+                        drawingContext.shadowBlur = 15;
+                        drawingContext.shadowColor = color(0, 229, 255);
+                        line(neurons[i].x, neurons[i].y, neurons[j].x, neurons[j].y);
+
+                        // Draw Binary Digits along the line
+                        if (d > 40) { // Only on longer lines
+                            noStroke();
+                            fill(255);
+                            let midX = (neurons[i].x + neurons[j].x) / 2;
+                            let midY = (neurons[i].y + neurons[j].y) / 2;
+                            textAlign(CENTER, CENTER);
+                            textSize(14);
+                            textFont('JetBrains Mono');
+                            // Randomly choose 0 or 1 for the connection
+                            text(random() > 0.5 ? "0" : "1", midX, midY);
+                            strokeWeight(3); // Reset stroke
+                        }
+                    }
+                }
+            }
+
+            // Draw Neurons (Nodes)
+            noStroke();
+            for (let n of neurons) {
+                fill(41, 121, 255); // Blue center
+                drawingContext.shadowBlur = 10;
+                drawingContext.shadowColor = color(41, 121, 255);
+                ellipse(n.x, n.y, 8, 8);
+
+                // White core
+                fill(255);
+                drawingContext.shadowBlur = 0;
+                ellipse(n.x, n.y, 3, 3);
+            }
+        }
+
+        function windowResized() {
+            let container = document.getElementById('canvas-container');
+            let w = container.offsetWidth;
+            let h = container.offsetHeight;
+            resizeCanvas(w, h);
+            neurons = []; // Reset on resize
+        }
+    </script>
+</body>
+
+</html>

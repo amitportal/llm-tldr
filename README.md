@@ -234,6 +234,18 @@ The bug is obvious. Line 28 uses `user` without going through the null check pat
 | `tldr search <pattern> [path]` | Text pattern search |
 | `tldr extract <file>` | Full file analysis |
 
+### Interactive Visualization
+| Command | What It Does |
+|---------|--------------|
+| `tldr-brain-server` | Start the **Interactive Brain Visualizer** |
+
+**Brain Visualizer Features:**
+- **3D Force-Graph**: Navigate complex dependencies spatially
+- **Tree View**: Hierarchical code structure with metrics
+- **Semantic Search**: Natural language query on your codebase
+- **Hybrid View**: Blend structural and semantic relationships
+- **Source Preview**: Instant view of code context and connections
+
 ### Analysis
 | Command | What It Does |
 |---------|--------------|

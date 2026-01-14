@@ -3,6 +3,14 @@ pygments-tldr>=2.19.3.0
 requests>=2.25.0
 toml>=0.10.2
 
-# Optional AI providers (install with: pip install tldr-code[ai])
+# Optional AI providers (install with: pip install llm-tldr[ai])
 # anthropic>=0.3.0
 # openai>=1.0.0
+
+# Brain visualization dependencies (install with: pip install llm-tldr[brain])
+# These are required for 'tldr brain build' command
+# networkx>=3.0
+# umap-learn>=0.5.0
+# hdbscan>=0.8.0
+# scipy>=1.10.0
+# scikit-learn>=1.0.0

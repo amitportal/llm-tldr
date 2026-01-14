@@ -188,7 +188,7 @@ class TreeCache:
         """Load cache index from disk."""
         if self._index_path and self._index_path.exists():
             try:
-                with open(self._index_path) as f:
+                with open(self._index_path, encoding="utf-8") as f:
                     data = json.load(f)
                 self._index = {
                     k: CacheEntry(**v) for k, v in data.items()
@@ -210,7 +210,7 @@ class TreeCache:
                 }
                 for k, v in self._index.items()
             }
-            with open(self._index_path, "w") as f:
+            with open(self._index_path, "w", encoding="utf-8") as f:
                 json.dump(data, f)
 
     def _get_cache_path(self, file_path: str) -> Path:

@@ -51,8 +51,9 @@ Thumbs.db
 benchmark/
 vendor/
 
-# Claude Code artifacts
+# Artifacts
 .claude/
+.agent/
 
 # Development notes
 thoughts/
@@ -60,3 +61,10 @@ thoughts/
 # TLDR cache (per-project)
 .tldr/
 archive/
+
+# UI
+lfm2_5_1_2b_instruct_gguf.py
+*.json
+Py*-analysis.md
+
+

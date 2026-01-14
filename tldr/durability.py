@@ -277,7 +277,7 @@ class PartitionedIndex:
         # Save manifest listing all packages
         manifest = {"packages": list(self.durable.keys())}
         manifest_path = durable_dir / "manifest.json"
-        with open(manifest_path, "w") as f:
+        with open(manifest_path, "w", encoding="utf-8") as f:
             json.dump(manifest, f, indent=2)
 
         # Save each package
@@ -285,7 +285,7 @@ class PartitionedIndex:
             # Sanitize package key for filename
             safe_key = package_key.replace("/", "__").replace("@", "_at_")
             pkg_path = durable_dir / f"{safe_key}.json"
-            with open(pkg_path, "w") as f:
+            with open(pkg_path, "w", encoding="utf-8") as f:
                 json.dump(partition.to_dict(), f)
 
     def load_durable(self, path: str) -> None:
@@ -298,14 +298,14 @@ class PartitionedIndex:
         if not manifest_path.exists():
             return
 
-        with open(manifest_path) as f:
+        with open(manifest_path, encoding="utf-8") as f:
             manifest = json.load(f)
 
         for package_key in manifest.get("packages", []):
             safe_key = package_key.replace("/", "__").replace("@", "_at_")
             pkg_path = durable_dir / f"{safe_key}.json"
             if pkg_path.exists():
-                with open(pkg_path) as f:
+                with open(pkg_path, encoding="utf-8") as f:
                     data = json.load(f)
                 self.durable[package_key] = DurablePartition.from_dict(data)
 
@@ -314,7 +314,7 @@ class PartitionedIndex:
         volatile_path = Path(path)
         volatile_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(volatile_path, "w") as f:
+        with open(volatile_path, "w", encoding="utf-8") as f:
             json.dump(self.volatile.to_dict(), f)
 
     def load_volatile(self, path: str) -> None:
@@ -323,6 +323,6 @@ class PartitionedIndex:
         if not volatile_path.exists():
             return
 
-        with open(volatile_path) as f:
+        with open(volatile_path, encoding="utf-8") as f:
             data = json.load(f)
         self.volatile = VolatilePartition.from_dict(data)
